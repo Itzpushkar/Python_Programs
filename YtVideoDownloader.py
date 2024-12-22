@@ -5,17 +5,21 @@ import subprocess
 import os
 
 # Set the path to the FFmpeg executable
+
 ffmpeg_path = "D:\\ffmpeg-2024-12-19-git-494c961379-full_build\\bin\\ffmpeg.exe"
 
 # Function to run FFmpeg commands with suppressed output (only for merging if necessary)
+
 def process_video(input_file, output_file):
     try:
         # Ensure the input file exists before proceeding
+        
         if not os.path.exists(input_file):
             print(f"Input file does not exist: {input_file}")
             return
         
         # Run the ffmpeg command to process the video with suppressed output
+        
         subprocess.run([ffmpeg_path, "-i", input_file, output_file], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         print(f"Video processed successfully: {output_file}")
     except Exception as e:
@@ -24,12 +28,12 @@ def process_video(input_file, output_file):
 def download_video(url, save_path):
     try:
         ydl_opts = {
-            'format': 'bestvideo+bestaudio/best',  # Request best video and audio formats
-            'outtmpl': f'{save_path}/%(title)s.%(ext)s',  # Output template
-            'ffmpeg_location': ffmpeg_path,  # Specify path to ffmpeg binary
-            'postprocessors': [{  # Merge the audio and video after download
+            'format': 'bestvideo+bestaudio/best',  
+            'outtmpl': f'{save_path}/%(title)s.%(ext)s',  
+            'ffmpeg_location': ffmpeg_path,  
+            'postprocessors': [{ 
                 'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',  # Preferred format for output
+                'preferedformat': 'mp4',  
             }],
         }
 
@@ -56,8 +60,6 @@ if __name__ == "__main__":
     if save_dir:
         print("Started download...")
         download_video(video_url, save_dir)
-
-        # You can skip additional FFmpeg processing if merging was successful
         print("Download and merging completed successfully.")
     else:
         print("Invalid save location.")
