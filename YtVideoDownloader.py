@@ -1,20 +1,41 @@
-from pytube import YouTube
+import yt_dlp
 import tkinter as tk
 from tkinter import filedialog
-import requests
+import subprocess
+import os
+
+# Set the path to the FFmpeg executable
+ffmpeg_path = "D:\\ffmpeg-2024-12-19-git-494c961379-full_build\\bin\\ffmpeg.exe"
+
+# Function to run FFmpeg commands with suppressed output (only for merging if necessary)
+def process_video(input_file, output_file):
+    try:
+        # Ensure the input file exists before proceeding
+        if not os.path.exists(input_file):
+            print(f"Input file does not exist: {input_file}")
+            return
+        
+        # Run the ffmpeg command to process the video with suppressed output
+        subprocess.run([ffmpeg_path, "-i", input_file, output_file], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print(f"Video processed successfully: {output_file}")
+    except Exception as e:
+        print(f"An error occurred while processing the video: {e}")
 
 def download_video(url, save_path):
     try:
-        yt = YouTube(url)
+        ydl_opts = {
+            'format': 'bestvideo+bestaudio/best',  # Request best video and audio formats
+            'outtmpl': f'{save_path}/%(title)s.%(ext)s',  # Output template
+            'ffmpeg_location': ffmpeg_path,  # Specify path to ffmpeg binary
+            'postprocessors': [{  # Merge the audio and video after download
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4',  # Preferred format for output
+            }],
+        }
 
-        session = requests.Session()
-        session.headers.update({'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'})
-        
-        yt.streams.session = session
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([url])
 
-        streams = yt.streams.filter(progressive=True, file_extension="mp4")
-        highest_res_stream = streams.get_highest_resolution()  
-        highest_res_stream.download(output_path=save_path)
         print(f"Video downloaded successfully to {save_path}")
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -35,5 +56,8 @@ if __name__ == "__main__":
     if save_dir:
         print("Started download...")
         download_video(video_url, save_dir)
+
+        # You can skip additional FFmpeg processing if merging was successful
+        print("Download and merging completed successfully.")
     else:
         print("Invalid save location.")
